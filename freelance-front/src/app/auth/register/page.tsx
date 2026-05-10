@@ -99,8 +99,8 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Erreur lors de l\'inscription')
 
-      toast.success('Inscription réussie ! Vérifiez votre email.')
-      router.push(`/auth/verify-email?email=${encodeURIComponent(form.email)}`)
+      toast.success('Inscription réussie ! Vous pouvez maintenant vous connecter.')
+      router.push('/auth/login')
     } catch (err: any) {
       toast.error(err.message)
     } finally {
@@ -305,7 +305,7 @@ export default function RegisterPage() {
                     ))}
                   </div>
                   <p className="text-xs mt-4 text-center" style={{ color: 'var(--text-muted)' }}>
-                    Un email de vérification vous sera envoyé.
+                    Votre compte sera actif immédiatement après l'inscription.
                   </p>
                 </div>
               )}
