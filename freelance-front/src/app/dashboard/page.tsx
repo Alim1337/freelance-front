@@ -6,7 +6,8 @@ import {
   ChevronRight, Edit3, Check, X, Loader2, Bell, Search,
   Briefcase, Award, Zap, Eye, Lock, Save, ArrowRight,
   BarChart2, Tag, MapPin, Phone, Globe, FileText, RefreshCw,
-  CheckCircle, AlertCircle, Home, Users
+  CheckCircle, AlertCircle, Home, Users,
+  Package, ShoppingBag, Plus, Clock, DollarSign, MessageSquare
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
@@ -97,10 +98,16 @@ export default function DashboardPage() {
 
   // ── Sidebar nav items ──────────────────────────────────
   const navItems = [
-    { id: 'overview',  label: 'Aperçu',       icon: Home },
-    { id: 'profile',   label: 'Mon profil',   icon: User },
-    ...(isProvider ? [{ id: 'categories', label: 'Catégories', icon: Tag }] : []),
-    { id: 'security',  label: 'Sécurité',     icon: Lock },
+    { id: 'overview',  label: 'Aperçu',            icon: Home },
+    { id: 'profile',   label: 'Mon profil',         icon: User },
+    ...(isProvider ? [
+      { id: 'services',  label: 'Mes services',     icon: Package },
+      { id: 'orders',    label: 'Commandes reçues', icon: ShoppingBag },
+      { id: 'categories',label: 'Catégories',       icon: Tag },
+    ] : [
+      { id: 'orders',    label: 'Mes commandes',    icon: ShoppingBag },
+    ]),
+    { id: 'security',  label: 'Sécurité',           icon: Lock },
   ]
 
   return (
@@ -210,6 +217,16 @@ export default function DashboardPage() {
           {/* ─────────── PROFILE TAB ─────────── */}
           {activeTab === 'profile' && (
             <ProfileTab profile={profile} loading={loading} onUpdated={fetchProfile} isProvider={isProvider} />
+          )}
+
+          {/* ─────────── SERVICES TAB (PROVIDER) ─────────── */}
+          {activeTab === 'services' && isProvider && (
+            <ServicesTab profile={profile} />
+          )}
+
+          {/* ─────────── ORDERS TAB ─────────── */}
+          {activeTab === 'orders' && (
+            <OrdersTab isProvider={isProvider} />
           )}
 
           {/* ─────────── CATEGORIES TAB (PROVIDER) ─────────── */}
@@ -345,8 +362,8 @@ function OverviewTab({ profile, loading, isProvider }: { profile: UserProfile | 
         <p className="text-xs font-semibold mono mb-4" style={{ color: 'var(--text-muted)' }}>// ACTIONS RAPIDES</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {(isProvider ? [
-            { label: 'Voir mon profil public', icon: Eye, href: `/providers/${profile?.id}`, color: 'var(--accent)' },
-            { label: 'Parcourir les catégories', icon: Tag, href: '/services', color: 'var(--accent3)' },
+            { label: 'Créer un nouveau service', icon: Plus, href: '/services/create', color: 'var(--accent)' },
+            { label: 'Voir mon profil public', icon: Eye, href: `/providers/${profile?.id}`, color: 'var(--accent3)' },
           ] : [
             { label: 'Trouver un prestataire', icon: Search, href: '/providers', color: 'var(--accent)' },
             { label: 'Explorer les services', icon: Briefcase, href: '/services', color: 'var(--accent3)' },
@@ -781,3 +798,94 @@ const WILAYAS = [
   'Aïn Témouchent','Ghardaïa','Relizane',"El M'Ghair",'El Meniaa','Ouled Djellal',
   'Bordj Badji Mokhtar','In Salah','In Guezzam','Touggourt','Djanet','Timimoun','Béni Abbès'
 ]
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICES TAB (PROVIDER ONLY)
+// ══════════════════════════════════════════════════════════════════════════════
+function ServicesTab({ profile }: { profile: UserProfile | null }) {
+  return (
+    <div className="space-y-6 animate-fade-up">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold mono mb-1" style={{ color: 'var(--accent)' }}>// MES SERVICES</p>
+          <h2 className="text-xl font-bold">Mes services (Gigs)</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            Gérez vos offres de services
+          </p>
+        </div>
+        <Link href="/services/create" className="btn-primary">
+          <Plus size={15} /> Nouveau service
+        </Link>
+      </div>
+
+      {/* Empty state */}
+      <div className="card p-16 text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ background: 'var(--accent-glow)' }}>
+          <Package size={28} style={{ color: 'var(--accent)' }} />
+        </div>
+        <h3 className="font-bold text-lg mb-2">Aucun service publié</h3>
+        <p className="text-sm mb-6 max-w-sm mx-auto" style={{ color: 'var(--text-muted)' }}>
+          Créez votre premier service pour commencer à recevoir des commandes de clients.
+        </p>
+        <Link href="/services/create" className="btn-primary inline-flex">
+          <Plus size={15} /> Créer mon premier service
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ORDERS TAB (CLIENT + PROVIDER)
+// ══════════════════════════════════════════════════════════════════════════════
+function OrdersTab({ isProvider }: { isProvider: boolean }) {
+  const [filter, setFilter] = useState('Toutes')
+  const filters = ['Toutes', 'En cours', 'Livrées', 'Terminées', 'Annulées']
+
+  return (
+    <div className="space-y-6 animate-fade-up">
+      <div>
+        <p className="text-xs font-semibold mono mb-1" style={{ color: 'var(--accent)' }}>// COMMANDES</p>
+        <h2 className="text-xl font-bold">{isProvider ? 'Commandes reçues' : 'Mes commandes'}</h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+          {isProvider ? 'Suivez les commandes de vos clients' : 'Suivez vos commandes en cours'}
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 flex-wrap">
+        {filters.map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+            style={{
+              background: filter === f ? 'var(--accent)' : 'var(--bg-card2)',
+              color: filter === f ? 'white' : 'var(--text-muted)',
+              border: `1px solid ${filter === f ? 'var(--accent)' : 'var(--border)'}`,
+            }}>
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Empty state */}
+      <div className="card p-16 text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ background: 'rgba(0,217,163,0.1)' }}>
+          <ShoppingBag size={28} style={{ color: 'var(--accent3)' }} />
+        </div>
+        <h3 className="font-bold text-lg mb-2">Aucune commande</h3>
+        <p className="text-sm mb-6 max-w-sm mx-auto" style={{ color: 'var(--text-muted)' }}>
+          {isProvider
+            ? 'Vous n\'avez pas encore reçu de commandes. Complétez votre profil pour attirer plus de clients.'
+            : 'Vous n\'avez pas encore passé de commande. Explorez nos services pour trouver ce dont vous avez besoin.'}
+        </p>
+        {!isProvider && (
+          <Link href="/services" className="btn-primary inline-flex">
+            <Search size={15} /> Explorer les services
+          </Link>
+        )}
+      </div>
+    </div>
+  )
+}
